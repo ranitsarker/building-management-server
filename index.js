@@ -6,15 +6,16 @@ require('dotenv').config()
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const port = process.env.PORT || 5000
+// middleware 
+app.use(cors({
+  origin: [
+    'http://localhost:5173', 
+  ], 
+  credentials: true
+}));
 
-// middleware
-const corsOptions = {
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
-    credentials: true,
-    optionSuccessStatus: 200,
-  }
-  app.use(cors(corsOptions))
-  app.use(express.json());
+app.use(express.json());
+
 
   const client = new MongoClient(process.env.DB_URI, {
     serverApi: {
@@ -28,6 +29,10 @@ const corsOptions = {
     try {
       //collection name 
       const usersCollection = client.db('buildingManagementDB').collection('users');
+      const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
+      const apartmentsCollection = client.db('buildingManagementDB').collection('apartments');
+
+
       // auth related api
       app.post('/jwt', async (req, res) => {
         const user = req.body;
@@ -72,6 +77,17 @@ const corsOptions = {
       )
       res.send(result)
     })
+
+    // get apartments
+    app.get('/apartments', async (req, res) => {
+      try {
+        const apartments = await apartmentsCollection.find().toArray();
+        res.json(apartments);
+      } catch (error) {
+        console.error('Error fetching apartments:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
       await client.db("admin").command({ ping: 1 });
