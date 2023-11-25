@@ -29,8 +29,8 @@ app.use(express.json());
     try {
       //collection name 
       const usersCollection = client.db('buildingManagementDB').collection('users');
-      const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
       const apartmentsCollection = client.db('buildingManagementDB').collection('apartments');
+      const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
 
 
       // auth related api
@@ -88,6 +88,23 @@ app.use(express.json());
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
+
+    // Save agreement endpoint
+    app.post('/saveAgreement', async (req, res) => {
+      try {
+        const agreementData = req.body;
+
+        // Save the agreement data that collection
+        const result = await agreementsCollection.insertOne(agreementData);
+
+        // Respond with the result or any other information
+        res.json({ success: true, result });
+      } catch (error) {
+        console.error('Error saving agreement:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
 
 
       await client.db("admin").command({ ping: 1 });
