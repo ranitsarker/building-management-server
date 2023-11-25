@@ -96,6 +96,8 @@ app.use(express.json());
 
         // Include the current date in the agreement data
         agreementData.createdAt = new Date();
+        agreementData.acceptedDate = null;
+        agreementData.rejectedDate = null;
 
         // Save the agreement data that collection
         const result = await agreementsCollection.insertOne(agreementData);
@@ -126,59 +128,111 @@ app.use(express.json());
       res.send(result);
     })
     
-// Update agreement status endpoint
-app.put('/updateAgreementStatus/:id', async (req, res) => {
+    // Update agreement status endpoint
+    app.put('/updateAgreementStatus/:id', async (req, res) => {
+      try {
+        const agreementId = req.params.id;
+        const { status } = req.body;
+
+        // Convert the agreementId to ObjectId
+        const objectId = new ObjectId(agreementId);
+
+        // Update the agreement status in the database
+        const result = await agreementsCollection.updateOne(
+          { _id: objectId },
+          { $set: { status } }
+        );
+
+        // If the agreement is not found, return a 404 status
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: 'Agreement not found' });
+        }
+
+        // Retrieve the updated agreement data
+        const updatedAgreement = await agreementsCollection.findOne({ _id: objectId });
+
+        res.json(updatedAgreement);
+      } catch (error) {
+        console.error('Error updating agreement status:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    // Update user role endpoint
+    app.put('/updateUserRole/:email', async (req, res) => {
+      try {
+        const userEmail = req.params.email;
+        const { role } = req.body;
+
+        // Update the user role in the database
+        const result = await usersCollection.updateOne(
+          { email: userEmail },
+          { $set: { role } }
+        );
+
+        // If the user is not found, return a 404 status
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Retrieve the updated user data
+        const updatedUser = await usersCollection.findOne({ email: userEmail });
+
+        res.json(updatedUser);
+      } catch (error) {
+        console.error('Error updating user role:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    // Update accepted date
+app.put('/updateAcceptedDate/:id', async (req, res) => {
+  const agreementId = req.params.id;
+
   try {
-    const agreementId = req.params.id;
-    const { status } = req.body;
-
-    // Convert the agreementId to ObjectId
-    const objectId = new ObjectId(agreementId);
-
-    // Update the agreement status in the database
     const result = await agreementsCollection.updateOne(
-      { _id: objectId },
-      { $set: { status } }
+      { _id: new ObjectId(agreementId) },
+      { $set: { acceptedDate: new Date() } }
     );
 
-    // If the agreement is not found, return a 404 status
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: 'Agreement not found' });
-    }
-
-    // Retrieve the updated agreement data
-    const updatedAgreement = await agreementsCollection.findOne({ _id: objectId });
-
-    res.json(updatedAgreement);
+    res.json(result);
   } catch (error) {
-    console.error('Error updating agreement status:', error);
+    console.error('Error updating accepted date:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// Update user role endpoint
-app.put('/updateUserRole/:email', async (req, res) => {
-  try {
-    const userEmail = req.params.email;
-    const { role } = req.body;
+// Update rejected date
+app.put('/updateRejectedDate/:id', async (req, res) => {
+  const agreementId = req.params.id;
 
-    // Update the user role in the database
-    const result = await usersCollection.updateOne(
-      { email: userEmail },
-      { $set: { role } }
+  try {
+    const result = await agreementsCollection.updateOne(
+      { _id: new ObjectId(agreementId) },
+      { $set: { rejectedDate: new Date() } }
     );
 
-    // If the user is not found, return a 404 status
-    if (result.matchedCount === 0) {
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating rejected date:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get user profile
+app.get('/userProfile/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const profile = await agreementsCollection.findOne({ userId });
+
+    if (!profile) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Retrieve the updated user data
-    const updatedUser = await usersCollection.findOne({ email: userEmail });
-
-    res.json(updatedUser);
+    res.json(profile);
   } catch (error) {
-    console.error('Error updating user role:', error);
+    console.error('Error fetching user profile:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
