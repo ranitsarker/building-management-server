@@ -94,6 +94,9 @@ app.use(express.json());
       try {
         const agreementData = req.body;
 
+        // Include the current date in the agreement data
+        agreementData.createdAt = new Date();
+
         // Save the agreement data that collection
         const result = await agreementsCollection.insertOne(agreementData);
 
@@ -101,6 +104,17 @@ app.use(express.json());
         res.json({ success: true, result });
       } catch (error) {
         console.error('Error saving agreement:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    // get agreements
+    app.get('/agreements', async (req, res) => {
+      try {
+        const agreements = await agreementsCollection.find().toArray();
+        res.json(agreements);
+      } catch (error) {
+        console.error('Error fetching agreements:', error);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
