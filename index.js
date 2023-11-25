@@ -3,7 +3,7 @@ const cors = require('cors')
 const app = express()
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion,  ObjectId} = require('mongodb');
 
 const port = process.env.PORT || 5000
 // middleware 
@@ -125,6 +125,69 @@ app.use(express.json());
       const result = await usersCollection.findOne({email})
       res.send(result);
     })
+    
+// Update agreement status endpoint
+app.put('/updateAgreementStatus/:id', async (req, res) => {
+  try {
+    const agreementId = req.params.id;
+    const { status } = req.body;
+
+    // Convert the agreementId to ObjectId
+    const objectId = new ObjectId(agreementId);
+
+    // Update the agreement status in the database
+    const result = await agreementsCollection.updateOne(
+      { _id: objectId },
+      { $set: { status } }
+    );
+
+    // If the agreement is not found, return a 404 status
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Agreement not found' });
+    }
+
+    // Retrieve the updated agreement data
+    const updatedAgreement = await agreementsCollection.findOne({ _id: objectId });
+
+    res.json(updatedAgreement);
+  } catch (error) {
+    console.error('Error updating agreement status:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Update user role endpoint
+app.put('/updateUserRole/:email', async (req, res) => {
+  try {
+    const userEmail = req.params.email;
+    const { role } = req.body;
+
+    // Update the user role in the database
+    const result = await usersCollection.updateOne(
+      { email: userEmail },
+      { $set: { role } }
+    );
+
+    // If the user is not found, return a 404 status
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Retrieve the updated user data
+    const updatedUser = await usersCollection.findOne({ email: userEmail });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+    
+
+
     
 
 
