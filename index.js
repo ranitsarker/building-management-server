@@ -127,6 +127,11 @@ app.use(express.json());
       const result = await usersCollection.findOne({email})
       res.send(result);
     })
+/**
+* agreement accepted or rejected that status endpoint and user role change status
+* accepted = user => member
+* rejected = member => user 
+*/
     
     // Update agreement status endpoint
     app.put('/updateAgreementStatus/:id', async (req, res) => {
@@ -185,57 +190,67 @@ app.use(express.json());
       }
     });
 
+
+
+/**
+* from admin agreement will accept and reject those 2 end point
+*/
     // Update accepted date
-app.put('/updateAcceptedDate/:id', async (req, res) => {
-  const agreementId = req.params.id;
+    app.put('/updateAcceptedDate/:id', async (req, res) => {
+      const agreementId = req.params.id;
 
-  try {
-    const result = await agreementsCollection.updateOne(
-      { _id: new ObjectId(agreementId) },
-      { $set: { acceptedDate: new Date() } }
-    );
+      try {
+        const result = await agreementsCollection.updateOne(
+          { _id: new ObjectId(agreementId) },
+          { $set: { acceptedDate: new Date() } }
+        );
 
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating accepted date:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+        res.json(result);
+      } catch (error) {
+        console.error('Error updating accepted date:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
-// Update rejected date
-app.put('/updateRejectedDate/:id', async (req, res) => {
-  const agreementId = req.params.id;
+    // Update rejected date
+    app.put('/updateRejectedDate/:id', async (req, res) => {
+      const agreementId = req.params.id;
 
-  try {
-    const result = await agreementsCollection.updateOne(
-      { _id: new ObjectId(agreementId) },
-      { $set: { rejectedDate: new Date() } }
-    );
+      try {
+        const result = await agreementsCollection.updateOne(
+          { _id: new ObjectId(agreementId) },
+          { $set: { rejectedDate: new Date() } }
+        );
 
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating rejected date:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+        res.json(result);
+      } catch (error) {
+        console.error('Error updating rejected date:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
-// Get user profile
-app.get('/userProfile/:userId', async (req, res) => {
-  const userId = req.params.userId;
+    /**
+     * member profile page to get agreement information 
+     *
+     */
+  // Fetch all agreements endpoint
+  app.get('/fetchAllAgreements', async (req, res) => {
+    try {
+      // Fetch all agreements from the database
+      const allAgreements = await agreementsCollection.find({}).toArray();
 
-  try {
-    const profile = await agreementsCollection.findOne({ userId });
-
-    if (!profile) {
-      return res.status(404).json({ error: 'User not found' });
+      res.json(allAgreements);
+    } catch (error) {
+      console.error('Error fetching all agreements:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
+  });
 
-    res.json(profile);
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+
+
+
+
+
 
 
 
