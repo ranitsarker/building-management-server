@@ -229,22 +229,39 @@ app.use(express.json());
       }
     });
 
-    /**
-     * member profile page to get agreement information 
-     *
-     */
-  // Fetch all agreements endpoint
-  app.get('/fetchAllAgreements', async (req, res) => {
-    try {
-      // Fetch all agreements from the database
-      const allAgreements = await agreementsCollection.find({}).toArray();
+    // Fetch all agreements endpoint
+    app.get('/fetchAllAgreements', async (req, res) => {
+      try {
+        // Fetch all agreements from the database
+        const allAgreements = await agreementsCollection.find({}).toArray();
 
-      res.json(allAgreements);
-    } catch (error) {
-      console.error('Error fetching all agreements:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
+        res.json(allAgreements);
+      } catch (error) {
+        console.error('Error fetching all agreements:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    // API endpoint to get user profile
+    app.get('/fetchUserProfile', async (req, res) => {
+      try {
+        const userEmail = req.query.email;
+
+        if (!userEmail) {
+          return res.status(400).json({ error: 'Email parameter is required' });
+        }
+        const userData = await usersCollection.findOne({ email: userEmail });
+
+        if (!userData) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(userData);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
 
