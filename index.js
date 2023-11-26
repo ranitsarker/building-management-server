@@ -283,26 +283,37 @@ app.use(express.json());
       }
     });
 
-//announcement post endpoint
-app.post('/make-announcement', async (req, res) => {
-  try {
-    const { title, description, user } = req.body;
+    //announcement post endpoint
+    app.post('/make-announcement', async (req, res) => {
+      try {
+        const { title, description, user } = req.body;
 
-    const result = await announcementsCollection.insertOne({
-      title,
-      description,
-      user,
-      createdAt: new Date(),
+        const result = await announcementsCollection.insertOne({
+          title,
+          description,
+          user,
+          createdAt: new Date(),
+        });
+
+        if (result.insertedId) {
+          res.status(201).json({ message: 'Announcement submitted successfully', insertedId: result.insertedId });
+        } else {
+          console.error('Failed to insert announcement');
+          res.status(500).json({ error: 'Internal Server Error' });
+        }
+      } catch (error) {
+        console.error('Error making announcement:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
     });
 
-    if (result.insertedId) {
-      res.status(201).json({ message: 'Announcement submitted successfully', insertedId: result.insertedId });
-    } else {
-      console.error('Failed to insert announcement');
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+    // Fetch all announcements endpoint
+app.get('/fetchAllAnnouncements', async (req, res) => {
+  try {
+    const announcements = await announcementsCollection.find().toArray();
+    res.json(announcements);
   } catch (error) {
-    console.error('Error making announcement:', error);
+    console.error('Error fetching announcements:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
