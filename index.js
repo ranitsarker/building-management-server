@@ -31,6 +31,7 @@ app.use(express.json());
       const usersCollection = client.db('buildingManagementDB').collection('users');
       const apartmentsCollection = client.db('buildingManagementDB').collection('apartments');
       const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
+      const announcementsCollection = client.db('buildingManagementDB').collection('announcements');
 
 
       // auth related api
@@ -281,6 +282,33 @@ app.use(express.json());
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
+
+//announcement post endpoint
+app.post('/make-announcement', async (req, res) => {
+  try {
+    const { title, description, user } = req.body;
+
+    const result = await announcementsCollection.insertOne({
+      title,
+      description,
+      user,
+      createdAt: new Date(),
+    });
+
+    if (result.insertedId) {
+      res.status(201).json({ message: 'Announcement submitted successfully', insertedId: result.insertedId });
+    } else {
+      console.error('Failed to insert announcement');
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  } catch (error) {
+    console.error('Error making announcement:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
 
 
 
