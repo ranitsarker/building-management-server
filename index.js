@@ -282,39 +282,6 @@ app.use(express.json());
       }
     });
 
-    // Delete member endpoint
-// Delete member endpoint
-app.delete('/deleteMember', async (req, res) => {
-  try {
-    const memberId = req.body.memberId;
-
-    // Find the member by _id
-    const member = await usersCollection.findOne({ _id: new ObjectId(memberId) });
-
-    if (!member) {
-      return res.status(404).json({ error: 'Member not found' });
-    }
-
-    // Delete the member from usersCollection
-    const deleteMemberResult = await usersCollection.deleteOne({ _id: new ObjectId(memberId) });
-
-    // Delete associated agreements from agreementsCollection
-    const deleteAgreementsResult = await agreementsCollection.deleteMany({ 'userInfo.email': member.email });
-
-    if (deleteMemberResult.deletedCount === 1) {
-      res.status(200).json({ message: 'Member deleted successfully', deleteAgreementsResult });
-    } else {
-      res.status(404).json({ error: 'Member not found' });
-    }
-  } catch (error) {
-    console.error('Error deleting member:', error.message);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
-    
-
 
 
 
