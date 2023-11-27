@@ -33,6 +33,7 @@ app.use(express.json());
       const apartmentsCollection = client.db('buildingManagementDB').collection('apartments');
       const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
       const announcementsCollection = client.db('buildingManagementDB').collection('announcements');
+      const paymentsCollection = client.db('buildingManagementDB').collection('payments');
 
 
       // auth related api
@@ -335,6 +336,25 @@ app.use(express.json());
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    });
+
+
+    // save payments
+    app.post('/payments', async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentsCollection.insertOne(payment);
+
+      // carefully delete each item from the agreements
+      console.log('payment info', payment);
+
+      // If agreementIds is a single string ID
+      const query = {
+        _id: new ObjectId(payment.agreementIds)
+      };
+
+      const deleteResult = await agreementsCollection.deleteOne(query);
+
+      res.send({ paymentResult, deleteResult });
     });
 
 
