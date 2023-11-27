@@ -45,21 +45,22 @@ app.use(express.json());
         res.send({ token });
       });
 
-      // Logout
-      app.get('/logout', async (req, res) => {
-        try {
-          res
-            .clearCookie('token', {
-              maxAge: 0,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            })
-            .send({ success: true })
-          console.log('Logout successful')
-        } catch (err) {
-          res.status(500).send(err)
+      // middlewares 
+      const verifyToken = (req, res, next) => {
+        console.log('inside verify token', req.headers.authorization);
+        if (!req.headers.authorization) {
+          return res.status(401).send({ message: 'unauthorized access' });
         }
-      })
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+          if (err) {
+            return res.status(401).send({ message: 'unauthorized access' })
+          }
+          req.decoded = decoded;
+          next();
+        })
+      }
+
     // Save or modify user email, status in DB
     app.put('/users/:email', async (req, res) => {
       const email = req.params.email
@@ -112,7 +113,7 @@ app.use(express.json());
     });
 
     // get agreements
-    app.get('/agreements', async (req, res) => {
+    app.get('/agreements', verifyToken, async (req, res) => {
       try {
         const agreements = await agreementsCollection.find().toArray();
         res.json(agreements);
@@ -123,7 +124,7 @@ app.use(express.json());
     });
 
     // get user role
-    app.get('/user/:email', async(req, res) => {
+    app.get('/user/:email', verifyToken, async(req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({email})
       res.send(result);
@@ -231,7 +232,7 @@ app.use(express.json());
     });
 
     // Fetch all agreements endpoint
-    app.get('/fetchAllAgreements', async (req, res) => {
+    app.get('/fetchAllAgreements', verifyToken, async (req, res) => {
       try {
         // Fetch all agreements from the database
         const allAgreements = await agreementsCollection.find({}).toArray();
@@ -244,7 +245,7 @@ app.use(express.json());
     });
 
     // API endpoint to get user profile
-    app.get('/fetchUserProfile', async (req, res) => {
+    app.get('/fetchUserProfile', verifyToken, async (req, res) => {
       try {
         const userEmail = req.query.email;
 
@@ -265,7 +266,7 @@ app.use(express.json());
     });
 
     // API endpoint to fetch members based on role
-    app.get('/fetchMembers', async (req, res) => {
+    app.get('/fetchMembers', verifyToken, async (req, res) => {
       try {
         const role = req.query.role;
 
@@ -308,15 +309,15 @@ app.use(express.json());
     });
 
     // Fetch all announcements endpoint
-app.get('/fetchAllAnnouncements', async (req, res) => {
-  try {
-    const announcements = await announcementsCollection.find().toArray();
-    res.json(announcements);
-  } catch (error) {
-    console.error('Error fetching announcements:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    app.get('/fetchAllAnnouncements', verifyToken, async (req, res) => {
+      try {
+        const announcements = await announcementsCollection.find().toArray();
+        res.json(announcements);
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
 
