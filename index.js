@@ -34,6 +34,7 @@ app.use(express.json());
       const agreementsCollection = client.db('buildingManagementDB').collection('agreements');
       const announcementsCollection = client.db('buildingManagementDB').collection('announcements');
       const paymentsCollection = client.db('buildingManagementDB').collection('payments');
+      const couponsCollection = client.db('buildingManagementDB').collection('coupons');
 
 
       // auth related api
@@ -356,18 +357,55 @@ app.use(express.json());
       res.send({ paymentResult, deleteResult });
     });
 
-// Fetch all payments endpoint
-app.get('/payments/history', async (req, res) => {
-  try {
-    // Fetch all payments from the database
-    const allPayments = await paymentsCollection.find({ email: req.query.email }).toArray();
+    // Fetch all payments endpoint
+    app.get('/payments/history', async (req, res) => {
+      try {
+        // Fetch all payments from the database
+        const allPayments = await paymentsCollection.find({ email: req.query.email }).toArray();
 
-    res.json(allPayments);
+        res.json(allPayments);
+      } catch (error) {
+        console.error('Error fetching payment history:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+
+
+// Add this endpoint to save coupon information
+// Add this endpoint to create a new coupon
+app.post('/coupons', async (req, res) => {
+  try {
+    // Extract coupon data from the request body
+    const { couponCode, discountPercentage, couponDescription } = req.body;
+
+    // Validate coupon data if needed
+
+    // Save the coupon to the 'coupons' collection
+    const result = await couponsCollection.insertOne({
+      couponCode,
+      discountPercentage,
+      couponDescription,
+    });
+
+    res.status(201).json({ success: true, result });
   } catch (error) {
-    console.error('Error fetching payment history:', error);
+    console.error('Error creating coupon:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+// Add this endpoint to save coupon information
+app.get('/coupons', async (req, res) => {
+  try {
+    // Fetch all coupons from the 'coupons' collection
+    const coupons = await couponsCollection.find().toArray();
+    res.json(coupons);
+  } catch (error) {
+    console.error('Error fetching coupons:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
 
 
