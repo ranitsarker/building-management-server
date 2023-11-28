@@ -362,14 +362,12 @@ app.use(express.json());
       try {
         // Fetch all payments from the database
         const allPayments = await paymentsCollection.find({ email: req.query.email }).toArray();
-
         res.json(allPayments);
       } catch (error) {
         console.error('Error fetching payment history:', error);
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
-
 
 
 // Add this endpoint to save coupon information
@@ -407,6 +405,22 @@ app.get('/coupons', async (req, res) => {
 });
 
 
+app.get('/coupons/:couponCode', async (req, res) => {
+  const couponCode = req.params.couponCode;
+
+  try {
+    const coupon = await couponsCollection.findOne({ couponCode });
+
+    if (coupon) {
+      res.json(coupon);
+    } else {
+      res.status(404).json({ error: 'Coupon not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching coupon:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
