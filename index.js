@@ -115,7 +115,7 @@ app.use(express.json());
     });
 
     // get agreements
-    app.get('/agreements', verifyToken, async (req, res) => {
+    app.get('/agreements', async (req, res) => {
       try {
         const agreements = await agreementsCollection.find().toArray();
         res.json(agreements);
@@ -126,7 +126,7 @@ app.use(express.json());
     });
 
     // get user role
-    app.get('/user/:email', verifyToken, async(req, res) => {
+    app.get('/user/:email', async(req, res) => {
       const email = req.params.email
       const result = await usersCollection.findOne({email})
       res.send(result);
@@ -247,7 +247,7 @@ app.use(express.json());
     });
 
     // API endpoint to get user profile
-    app.get('/fetchUserProfile', verifyToken, async (req, res) => {
+    app.get('/fetchUserProfile', async (req, res) => {
       try {
         const userEmail = req.query.email;
 
@@ -268,7 +268,7 @@ app.use(express.json());
     });
 
     // API endpoint to fetch members based on role
-    app.get('/fetchMembers', verifyToken, async (req, res) => {
+    app.get('/fetchMembers', async (req, res) => {
       try {
         const role = req.query.role;
 
@@ -311,7 +311,7 @@ app.use(express.json());
     });
 
     // Fetch all announcements endpoint
-    app.get('/fetchAllAnnouncements', verifyToken, async (req, res) => {
+    app.get('/fetchAllAnnouncements', async (req, res) => {
       try {
         const announcements = await announcementsCollection.find().toArray();
         res.json(announcements);
@@ -338,7 +338,6 @@ app.use(express.json());
       })
     });
 
-
     // save payments
     app.post('/payments', async (req, res) => {
       const payment = req.body;
@@ -357,7 +356,18 @@ app.use(express.json());
       res.send({ paymentResult, deleteResult });
     });
 
+// Fetch all payments endpoint
+app.get('/payments/history', async (req, res) => {
+  try {
+    // Fetch all payments from the database
+    const allPayments = await paymentsCollection.find({ email: req.query.email }).toArray();
 
+    res.json(allPayments);
+  } catch (error) {
+    console.error('Error fetching payment history:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
