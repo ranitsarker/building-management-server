@@ -11,6 +11,8 @@
     app.use(cors({
     origin: [
       'http://localhost:5173', 
+      'https://building-management-31565.web.app',
+      'https://craven-glove.surge.sh'
     ], 
     credentials: true
     }));
@@ -134,12 +136,6 @@
         const result = await usersCollection.findOne({email})
         res.send(result);
       })
-
-    /**
-    * agreement accepted or rejected that status endpoint and user role change status
-    * accepted = user => member
-    * rejected = member => user 
-    */
       
       // Update agreement status endpoint
       app.put('/updateAgreementStatus/:id', async (req, res) => {
@@ -396,7 +392,7 @@
     }
     });
     // Add this endpoint to get coupon information
-    app.get('/coupons', verifyToken, async (req, res) => {
+    app.get('/coupons', async (req, res) => {
     try {
       // Fetch all coupons from the 'coupons' collection
       const coupons = await couponsCollection.find().toArray();
@@ -425,12 +421,35 @@
     }
     });
 
-  await client.db("admin").command({ ping: 1 });
+    // total number of apartment
+app.get('/apartments/count', async (req, res) => {
+  try {
+    const totalApartmentsCount = await apartmentsCollection.countDocuments();
+    res.json(totalApartmentsCount);
+  } catch (error) {
+    console.error('Error fetching apartments count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// get accepted agreements (totalUnavailableRooms room)
+app.get('/agreements/totalUnavailableRooms', verifyToken, async (req, res) => {
+  try {
+    const totalUnavailableRooms = await agreementsCollection.countDocuments({ status: 'accepted' });
+    res.json(totalUnavailableRooms);
+  } catch (error) {
+    console.error('Error fetching total unavailable rooms:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
-      } finally {
-        // Ensures that the client will close when you finish/error
-        // await client.close();
-      }
+          } finally {
+            // Ensures that the client will close when you finish/error
+            // await client.close();
+          }
     }
     run().catch(console.dir)
 
