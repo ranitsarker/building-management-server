@@ -11,8 +11,7 @@
     app.use(cors({
     origin: [
       'http://localhost:5173', 
-      'https://building-management-31565.web.app',
-      'https://craven-glove.surge.sh'
+      'https://building-management-31565.web.app'
     ], 
     credentials: true
     }));
@@ -355,19 +354,25 @@
 
         res.send({ paymentResult, deleteResult });
       });
-
+      
       // Fetch all payments endpoint
       app.get('/payments/history', verifyToken, async (req, res) => {
         try {
-          // Fetch all payments from the database
-          const allPayments = await paymentsCollection.find({ email: req.query.email }).toArray();
+          const query = { email: req.query.email };
+      
+          // If a month parameter is provided, add it to the query
+          if (req.query.month) {
+            query.month = req.query.month;
+          }
+      
+          // Fetch payments based on the query
+          const allPayments = await paymentsCollection.find(query).toArray();
           res.json(allPayments);
         } catch (error) {
           console.error('Error fetching payment history:', error);
           res.status(500).json({ error: 'Internal Server Error' });
         }
       });
-
 
     // Add this endpoint to save coupon information
     // Add this endpoint to create a new coupon
@@ -422,30 +427,30 @@
     });
 
     // total number of apartment
-app.get('/apartments/count', async (req, res) => {
-  try {
-    const totalApartmentsCount = await apartmentsCollection.countDocuments();
-    res.json(totalApartmentsCount);
-  } catch (error) {
-    console.error('Error fetching apartments count:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    app.get('/apartments/count', async (req, res) => {
+      try {
+        const totalApartmentsCount = await apartmentsCollection.countDocuments();
+        res.json(totalApartmentsCount);
+      } catch (error) {
+        console.error('Error fetching apartments count:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
-// get accepted agreements (totalUnavailableRooms room)
-app.get('/agreements/totalUnavailableRooms', verifyToken, async (req, res) => {
-  try {
-    const totalUnavailableRooms = await agreementsCollection.countDocuments({ status: 'accepted' });
-    res.json(totalUnavailableRooms);
-  } catch (error) {
-    console.error('Error fetching total unavailable rooms:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    // get accepted agreements (totalUnavailableRooms room)
+    app.get('/agreements/totalUnavailableRooms', verifyToken, async (req, res) => {
+      try {
+        const totalUnavailableRooms = await agreementsCollection.countDocuments({ status: 'accepted' });
+        res.json(totalUnavailableRooms);
+      } catch (error) {
+        console.error('Error fetching total unavailable rooms:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
           } finally {
             // Ensures that the client will close when you finish/error
             // await client.close();
