@@ -356,7 +356,7 @@
       });
       
       // Fetch all payments endpoint
-      app.get('/payments/history', verifyToken, async (req, res) => {
+      app.get('/payments-history', verifyToken, async (req, res) => {
         try {
           const query = { email: req.query.email };
       
@@ -375,7 +375,6 @@
       });
 
     // Add this endpoint to save coupon information
-    // Add this endpoint to create a new coupon
     app.post('/coupons', async (req, res) => {
     try {
       // Extract coupon data from the request body
